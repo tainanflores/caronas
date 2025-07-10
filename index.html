@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>App de Caronas</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="description" content="App de Caronas - Entre na fila para oferecer uma carona." />
+    <script type="module" src="app.js" defer></script>
+</head>
+
+
+<body>
+
+    <header>
+        <div id="topMenu" class="hidden">
+            <button id="menuBtn" title="Menu">&#x22EE;</button> <!-- 3 pontos verticais -->
+            <div id="menuDropdown" class="hidden">
+                <button id="leaveQueueMenuBtn">Sair da fila</button>
+            </div>
+        </div>
+        <!-- <h1 id="tituloApp">Os Caroneiros</h1> -->
+        <img src="img/banner.png" alt="Banner do App" id="banner" />
+
+    </header>
+
+    <main>
+        <!-- Seção de autenticação -->
+        <section id="authSection">
+
+            <!-- Login -->
+            <div id="loginForm" class="authForm">
+                <h1 class="titulo-app">Login</h1>
+                <div class="input-box">
+                    <label for="email">Email:</label>
+                    <input type="email" id="loginEmail" placeholder="email@email.com" autocomplete="username" />
+                </div>
+                <div class="input-box">
+                    <label for="password">Senha:</label>
+                    <input type="password" id="loginPassword" placeholder="*********" autocomplete="current-password" />
+                </div>
+
+                <button id="loginBtn">Entrar</button>
+                <button id="showRegisterBtn">Cadastrar-se</button>
+                <p>
+                    <button id="showRecoverBtn" class="linkBtn">Esqueci minha senha</button>
+                </p>
+            </div>
+
+            <!-- Cadastro -->
+            <div id="registerForm" class="authForm hidden">
+                <h1 class="titulo-app">Cadastrar</h1>
+                <div class="input-box">
+                    <label for="registerName">Nome:</label>
+                    <input type="text" id="registerName" placeholder="Ex: João Silva" autocomplete="name" />
+                </div>
+                <div class="input-box">
+                    <label for="registerEmail">Email:</label>
+                    <input type="email" id="registerEmail" placeholder="email@email.com" autocomplete="email" />
+                </div>
+                <div class="input-box">
+                    <label for="registerPassword">Senha:</label>
+                    <input type="password" id="registerPassword" placeholder="Senha (mínimo 6 caracteres)"
+                        autocomplete="new-password" />
+                </div>
+                <button id="registerBtn">Cadastrar</button>
+                <button id="showLoginBtn">Voltar</button>
+            </div>
+
+            <!-- Recuperar Senha -->
+            <div id="recoverForm" class="authForm hidden">
+                <h1 class="titulo-app">Recuperar senha</h1>
+                <div class="input-box">
+                    <label for="recoverEmail">Email:</label>
+                    <input type="email" id="recoverEmail" placeholder="email@email.com" autocomplete="email" />
+                </div>
+                <button id="recoverBtn">Enviar link de recuperação</button>
+                <button id="showLoginFromRecoverBtn">Voltar para login</button>
+            </div>
+
+            <!-- Seção app principal após login -->
+            <section id="appSection" class="hidden">
+                <p id="userInfo"></p>
+
+                <div id="queueActions">
+                    <button id="enterQueueBtn">Entrar na fila</button>
+                    <button id="confirmRideBtn" class="hidden">Carona Finalizada</button>
+                </div>
+
+                <section id="queueListSection">
+                    <h3>Fila de Caroneiros</h3>
+                    <ol id="queueList"></ol>
+                </section>
+
+                <button id="logoutBtn" style="display: none;">Sair do app</button>
+            </section>
+            <!-- Mensagens gerais de feedback -->
+            <div id="message" role="alert"></div>
+        </section>
+
+    </main>
+
+</body>
+
+</html>

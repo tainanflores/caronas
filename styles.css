@@ -1,0 +1,431 @@
+/* Reset básico */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    /* font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; */
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Corpo da página */
+body {
+    /* background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.7)), url('bg.jpg'); */
+    background-color: #ffffff;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #333;
+    min-height: 100vh;
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
+    /* padding: 0 1rem 2rem; */
+}
+
+/* Header */
+header {
+    width: 100%;
+    /* height: 20vh; */
+    max-width: 480px;
+    position: relative;
+    /* margin: 1rem 0; */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    /* padding: 1rem; */
+}
+
+#banner {
+    width: 100%;
+    height: auto;
+    /* border-radius: 8px; */
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.1);
+}
+
+/* Menu 3 pontos */
+#topMenu {
+    position: absolute;
+    top: 0px;
+    right: 8px;
+}
+
+#topMenu.hidden {
+    display: none;
+}
+
+#menuBtn {
+    background: rgb(250, 249, 249);
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+    padding: 4px 14px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+}
+
+#menuBtn:hover,
+#menuBtn:focus {
+    background-color: #e0e7ff;
+    outline: none;
+}
+
+#menuDropdown {
+    position: absolute;
+    top: 32px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
+    min-width: 140px;
+    z-index: 10;
+}
+
+#menuDropdown.hidden {
+    display: none;
+}
+
+#menuDropdown button {
+    width: 100%;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    text-align: left;
+    font-weight: 600;
+    color: #d23f3f;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease;
+}
+
+#menuDropdown button:hover,
+#menuDropdown button:focus {
+    background-color: #f9d6d6;
+    outline: none;
+}
+
+/* Main */
+main {
+    width: 100%;
+    flex: 1 1 auto;
+    background: white;
+    border-top-left-radius: 100px;
+    /* max-width: 480px; */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+main {
+    min-height: 0;
+    height: 100%;
+}
+
+#authSection {
+    flex: 1 1 auto;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+
+/* Mensagens */
+
+#message {
+    min-height: 40px;
+    padding: 10px 20px;
+    margin: 15px auto;
+    width: fit-content;
+    max-width: 90%;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #fff;
+    background-color: #d23f3f;
+    /* vermelho */
+    border-left: 6px solid #a00;
+    border-radius: 6px;
+    box-shadow: 0 0 10px rgba(210, 63, 63, 0.5);
+    text-align: center;
+    user-select: none;
+    animation: pulseMessage 0.3s ease-in-out;
+    display: none;
+    /* começa escondido */
+}
+
+/* Animação de entrada */
+@keyframes pulseMessage {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.5;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.titulo-app {
+    margin: 1rem 0 1rem 0;
+    font-size: 2.5rem;
+    text-align: center;
+    letter-spacing: 2px;
+    background: radial-gradient(circle at 50% 40%, #1df8a4 0%, #4b2bff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
+}
+
+/* Seções de autenticação e app */
+.authForm {
+    width: 100%;
+    /* max-width: 480px; */
+    padding: 0rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    /* border-radius: 12px; */
+    /* box-shadow: 0 3px 10px rgb(0 0 0 / 0.07); */
+    /* margin-bottom: 1.5rem; */
+    /* justify-content: space-around; */
+}
+
+.authForm.hidden {
+    display: none;
+}
+
+.authForm h2 {
+    font-weight: 700;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #334155;
+}
+
+.input-box {
+    margin: 10px 0;
+    border-radius: 5px;
+    padding: 5px 10px;
+    font-weight: bolder;
+    box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.247);
+}
+
+.input-box input.error {
+    border: 2px solid #d23f3f;
+    background-color: #ffe5e5;
+}
+
+/* Inputs */
+input[type="email"],
+input[type="password"],
+input[type="text"] {
+    width: 100%;
+    padding: 4px 2px;
+    font-size: 1rem;
+    /* margin-bottom: 2rem; */
+    border: none;
+    transition: border-color 0.3s ease;
+    outline-offset: 2px;
+}
+
+input[type="email"]:focus,
+input[type="password"]:focus,
+input[type="text"]:focus {
+    border-color: #3b82f6;
+    outline: none;
+    box-shadow: 0 0 6px #93c5fd;
+}
+
+/* Botões principais */
+button {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.25s ease;
+    user-select: none;
+    display: inline-block;
+    margin-bottom: 10px;
+}
+
+button:disabled {
+    background-color: #94a3b8;
+    cursor: not-allowed;
+}
+
+button#loginBtn,
+button#registerBtn,
+button#recoverBtn,
+button#enterQueueBtn,
+button#confirmRideBtn {
+    background-color: #2563eb;
+    color: white;
+    margin-top: 0.3rem;
+}
+
+button#loginBtn:hover,
+button#registerBtn:hover,
+button#recoverBtn:hover,
+button#enterQueueBtn:hover,
+button#confirmRideBtn:hover {
+    background-color: #1e40af;
+}
+
+button#showLoginFromRecoverBtn:hover {
+    background-color: #d23f3f;
+    color: #1e293b;
+}
+
+/* Botão sair do app */
+#logoutBtn {
+    margin-top: 1rem;
+    background-color: #d23f3f;
+    color: white;
+}
+
+#logoutBtn:hover {
+    background-color: #991b1b;
+}
+
+/* Botão sair da fila no menu - já estilizado no menu */
+
+/* Links estilo botão */
+.linkBtn {
+    text-align: end;
+    background: none;
+    border: none;
+    color: #3b82f6;
+    cursor: pointer;
+    font-weight: 600;
+    text-decoration: underline;
+    padding: 0;
+    font-size: 0.95rem;
+    user-select: none;
+}
+
+.linkBtn:hover,
+.linkBtn:focus {
+    color: #1e40af;
+    outline: none;
+}
+
+/* Seção principal após login */
+#appSection {
+    background: white;
+    padding: 1.5rem 1.5rem 2rem;
+    border-radius: 12px;
+    /* box-shadow: 0 3px 10px rgb(0 0 0 / 0.07); */
+    /* margin-bottom: 2rem; */
+}
+
+#appSection.hidden {
+    display: none;
+}
+
+#userInfo {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    text-align: center;
+    color: #334155;
+}
+
+/* Ações da fila */
+#queueActions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+#queueActions button {
+    flex: 1 1 140px;
+}
+
+/* Lista da fila */
+#queueListSection {
+    border-top: 1px solid #e2e8f0;
+    padding-top: 1rem;
+}
+
+#queueListSection h3 {
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+    text-align: center;
+    color: #1e293b;
+}
+
+#queueList {
+    list-style: decimal;
+    max-height: 220px;
+    overflow-y: auto;
+    padding: 0 0.5rem;
+}
+
+#queueList li {
+    background-color: #f0f5ff;
+    padding: 10px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #1e293b;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.05);
+    /* list-style: ; */
+}
+
+/* Scroll personalizado */
+#queueList::-webkit-scrollbar {
+    width: 6px;
+}
+
+#queueList::-webkit-scrollbar-thumb {
+    background-color: #2563eb;
+    border-radius: 10px;
+}
+
+#queueList::-webkit-scrollbar-track {
+    background: #e0e7ff;
+    border-radius: 10px;
+}
+
+/* Media Queries para responsividade */
+@media (min-width: 480px) {
+    body {
+        /* padding: 0 1.5rem 3rem; */
+    }
+
+    #queueActions {
+        gap: 1.5rem;
+    }
+
+    #queueList {
+        max-height: 300px;
+    }
+}
+
+@media (min-width: 768px) {
+    body {
+        /* font-size: 1.1rem; */
+    }
+
+    #appSection {
+        /* padding: 2rem 2rem 3rem; */
+    }
+
+    .authForm {
+        /* padding: 2rem 2rem; */
+    }
+
+    #banner {
+        /* border-radius: 12px; */
+    }
+}
