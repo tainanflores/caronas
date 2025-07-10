@@ -1,4 +1,3 @@
-import { firebaseConfig } from "./firebaseConfig.js";
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
 import { getMessaging, getToken, onMessage } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-messaging.js";
 
@@ -21,11 +20,23 @@ import {
     updateDoc,
     collection,
     getDocs,
+    addDoc,
     serverTimestamp,
+    limit,
     orderBy,
-    query
+    query,
+    onSnapshot,
+    where
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
+const firebaseConfig = {
+    apiKey: "AIzaSyCefSZfaZj5mKSowZUYhwE-5V9nBc04GiE",
+    authDomain: "caronastj.firebaseapp.com",
+    projectId: "caronastj",
+    storageBucket: "caronastj.firebasestorage.app",
+    messagingSenderId: "837892083232",
+    appId: "1:837892083232:web:63f3b7299bafef95df3645"
+};
 
 // --- INICIALIZAÇÃO DO FIREBASE ---
 const app = initializeApp(firebaseConfig);
@@ -33,33 +44,16 @@ const auth = getAuth();
 const db = getFirestore(app);
 const messaging = getMessaging();
 
-// --- FUNÇOES DE MENSAGENS PUSH ---
-Notification.requestPermission().then((permission) => {
-    if (permission === 'granted') {
-        getToken(messaging, {
-            vapidKey: 'BNqChjRQpFe_6xZcJs6IBtdkSj9Rjask1KK_-EVli-vxjsxfSvlj9A44vE6i7wuoWhcp80Zi4pISyTjQ-RZ2no0'
-        }).then((currentToken) => {
-            if (currentToken) {
-                console.log('Token FCM:', currentToken);
-                // Você pode salvar esse token no Firestore para enviar push por backend depois
-            } else {
-                console.warn('Nenhum token disponível. Permissão não concedida?');
-            }
-        }).catch((err) => {
-            console.error('Erro ao buscar token:', err);
-        });
-    } else {
-        console.warn('Permissão de notificação negada');
-    }
-});
+// onMessage(messaging, (payload) => {
+//     console.log('Notificação recebida em foreground:', payload);
+//     if (document.visibilityState === 'visible') {
+//         new Notification(payload.notification.title, {
+//             body: payload.notification.body,
+//             icon: '/icons/icon-192.png'
+//         });
+//     }
 
-onMessage(messaging, (payload) => {
-    console.log('Notificação recebida em foreground:', payload);
-    new Notification(payload.notification.title, {
-        body: payload.notification.body,
-        icon: '/icons/icon-192.png'
-    });
-});
+// });
 
 // --- ELEMENTOS ---
 const messageEl = document.getElementById("message");
@@ -86,12 +80,14 @@ const showLoginBtn = document.getElementById("showLoginBtn");
 const showRecoverBtn = document.getElementById("showRecoverBtn");
 const showLoginFromRecoverBtn = document.getElementById("showLoginFromRecoverBtn");
 
+const authSection = document.getElementById("authSection");
 const appSection = document.getElementById("appSection");
-const userInfo = document.getElementById("userInfo");
+// const userInfo = document.getElementById("userInfo");
 const logoutBtn = document.getElementById("logoutBtn");
 
 const enterQueueBtn = document.getElementById("enterQueueBtn");
 const confirmRideBtn = document.getElementById("confirmRideBtn");
+const skipRideBtn = document.getElementById("skipRideBtn");
 const topMenu = document.getElementById("topMenu");
 
 const queueList = document.getElementById("queueList");
@@ -134,7 +130,9 @@ function showSection(section) {
     loginForm.classList.add("hidden");
     registerForm.classList.add("hidden");
     recoverForm.classList.add("hidden");
+    authSection.classList.add("hidden");
     appSection.classList.add("hidden");
+
 
     // Mostra o pedido
     section.classList.remove("hidden");
@@ -168,8 +166,10 @@ showLoginBtn.onclick = () => {
 };
 
 showRecoverBtn.onclick = () => {
-    clearInputs();
+    recoverEmail.value = loginEmail.value;
+    // clearInputs();
     showSection(recoverForm);
+
 };
 
 showLoginFromRecoverBtn.onclick = () => {
@@ -233,6 +233,7 @@ registerBtn.onclick = async () => {
 loginBtn.onclick = async () => {
     const email = loginEmail.value.trim();
     const password = loginPassword.value;
+    const remember = document.getElementById('rememberLogin').checked;
 
     if (!validateEmail(email)) {
         showMessage("Email inválido.");
@@ -248,6 +249,12 @@ loginBtn.onclick = async () => {
         currentUser = userCred.user;
         clearInputs();
         showSection(appSection);
+
+        if (remember) {
+            localStorage.setItem('savedLoginEmail', email);
+        } else {
+            localStorage.removeItem('savedLoginEmail');
+        }
         showMessage("Login realizado com sucesso!", false);
     } catch (error) {
         if (error.code === "auth/wrong-password") {
@@ -256,6 +263,10 @@ loginBtn.onclick = async () => {
             showMessage("Usuário não encontrado. Cadastre-se.");
         } else if (error.code === "auth/invalid-email") {
             showMessage("Email inválido.");
+        } else if (error.code === "auth/too-many-requests") {
+            showMessage("Muitas tentativas de login. Tente novamente mais tarde.");
+        } else if (error.code === "auth/invalid-credential") {
+            showMessage("Senha inválida. Tente novamente ou clique 'em esqueci minha senha'.");
         } else {
             showMessage("Erro ao logar: " + error.message);
         }
@@ -336,8 +347,14 @@ leaveQueueMenuBtn.onclick = async () => {
 
 enterQueueBtn.onclick = async () => {
     if (!currentUser) return;
+
     try {
-        await setDoc(doc(db, "queue", currentUser.uid), { timestamp: serverTimestamp() });
+        const filaRef = collection(db, "queue");
+        const q = query(filaRef, orderBy("queueSpot", "asc"), limit(1));
+        const snapshot = await getDocs(q);
+        const menorQueueSpot = snapshot.empty ? 0 : snapshot.docs[0].data().queueSpot - 1;
+
+        await setDoc(doc(db, "queue", currentUser.uid), { queueSpot: menorQueueSpot });
         await updateDoc(doc(db, "users", currentUser.uid), { inQueue: true });
         showMessage("Você entrou na fila.", false);
         await updateUI();
@@ -346,15 +363,18 @@ enterQueueBtn.onclick = async () => {
     }
 };
 
-// --- CONFIRMAR CARONA ---
 
+// --- CONFIRMAR CARONA ---
 confirmRideBtn.onclick = async () => {
     if (!currentUser) return;
 
     try {
-        // Remove do início da fila e insere no fim (timestamp novo)
-        await deleteDoc(doc(db, "queue", currentUser.uid));
-        await setDoc(doc(db, "queue", currentUser.uid), { timestamp: serverTimestamp() });
+        const filaRef = collection(db, "queue");
+        const q = query(filaRef, orderBy("queueSpot", "desc"), limit(1));
+        const snapshot = await getDocs(q);
+        const maiorQueueSpot = snapshot.empty ? 0 : snapshot.docs[0].data().queueSpot + 1;
+
+        await updateDoc(doc(db, "queue", currentUser.uid), { queueSpot: maiorQueueSpot });
         showMessage("Carona confirmada. Você foi para o final da fila.", false);
         await updateUI();
     } catch (error) {
@@ -382,7 +402,7 @@ async function updateUI() {
         return;
     }
 
-    userInfo.textContent = `Olá, ${userData.name}`;
+    // userInfo.textContent = `Olá, ${userData.name}`;
 
     // Verifica se está na fila
     const inQueue = userData.inQueue === true;
@@ -391,36 +411,75 @@ async function updateUI() {
     confirmRideBtn.style.display = "none"; // inicialmente escondido
 
     // Busca fila ordenada por timestamp
-    const q = query(collection(db, "queue"), orderBy("timestamp"));
+    const q = query(collection(db, "queue"), orderBy("queueSpot", "asc"));
     const snapshot = await getDocs(q);
-
-    // Mostra fila no UI
-    queueList.innerHTML = "";
-    snapshot.forEach((docSnap) => {
-        let listNumber = queueList.children.length + 1;
-        const id = docSnap.id;
-        const time = docSnap.data().timestamp?.toDate();
-        const user = id === currentUser.uid ? "(Você)" : "";
-        queueList.innerHTML += `<li>${listNumber} - ${user} - ${currentUser.displayName}</li>`;
-        if (id === currentUser.uid) {
-            queueList.lastElementChild.style.backgroundColor = "#00F505"; // destaque verde limao
-        }
-    });
 
     // Se estiver na fila e for o primeiro, mostra botão confirmar
     const firstInQueue = snapshot.docs[0]?.id;
     if (inQueue && firstInQueue === currentUser.uid) {
         confirmRideBtn.style.display = "inline-block";
-
+        skipRideBtn.classList.remove("hidden");
     }
 }
 
-// --- MONITORA AUTENTICAÇÃO ---
+function startListeningQueue() {
+    const filaRef = collection(db, "queue");
+    const q = query(filaRef, orderBy("queueSpot", "asc"));
+
+    onSnapshot(q, async (snapshot) => {
+        queueList.innerHTML = "";
+
+        // Usar for..of para poder usar await dentro do loop
+        for (const docSnap of snapshot.docs) {
+            const userId = docSnap.id;
+            const userDataSnap = await getDoc(doc(db, "users", userId));
+            const userData = userDataSnap.exists() ? userDataSnap.data() : { name: "Usuário" };
+
+            const isCurrentUser = userId === currentUser?.uid;
+            const listNumber = queueList.children.length + 1;
+
+            const li = document.createElement("li");
+            li.textContent = `${listNumber} - ${userData.name} ${isCurrentUser ? "(Você)" : ""}`;
+            if (isCurrentUser) {
+                li.style.backgroundColor = "#00F505"; // destaque verde limão
+            }
+            queueList.appendChild(li);
+        }
+        updateUI();
+    });
+}
+
+// --- MONITORA AUTENTICAÇÃO ---                     vapidKey: 'BNqChjRQpFe_6xZcJs6IBtdkSj9Rjask1KK_-EVli-vxjsxfSvlj9A44vE6i7wuoWhcp80Zi4pISyTjQ-RZ2no0'
+
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
+
     if (user) {
+        try {
+            const permission = await Notification.requestPermission();
+
+            if (permission === 'granted') {
+                const currentToken = await getToken(messaging, {
+                    vapidKey: 'BNqChjRQpFe_6xZcJs6IBtdkSj9Rjask1KK_-EVli-vxjsxfSvlj9A44vE6i7wuoWhcp80Zi4pISyTjQ-RZ2no0'
+                });
+
+                if (currentToken) {
+                    if (currentUser) {
+                        await saveTokenForUser(currentUser.uid, currentToken);
+                    }
+                } else {
+                    console.warn('Nenhum token disponível.');
+                }
+            } else {
+                console.warn('Permissão de notificação negada.');
+            }
+        } catch (err) {
+            console.error('Erro ao obter ou salvar token:', err);
+        }
+
         clearInputs();
+        startListeningQueue();
         await updateUI();
         showSection(appSection);
     } else {
@@ -429,3 +488,57 @@ onAuthStateChanged(auth, async (user) => {
         showSection(loginForm);
     }
 });
+
+// --- FUNÇÕES DE TOKEN ---
+
+async function saveTokenForUser(uid, currentToken) {
+    try {
+        const tokensRef = collection(db, "fcmTokens", uid, "tokens");
+
+        // Verifica se o token já existe
+        const q = query(tokensRef, where("token", "==", currentToken));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // Token já existe, apenas atualiza o timestamp
+            querySnapshot.forEach(async (docSnap) => {
+                await updateDoc(docSnap.ref, {
+                    createdAt: serverTimestamp()
+                });
+            });
+            console.log("Token já existia, timestamp atualizado.");
+        } else {
+            // Token novo, adiciona ao Firestore
+            await addDoc(tokensRef, {
+                token: currentToken,
+                createdAt: serverTimestamp()
+            });
+            console.log("Token salvo no Firestore.");
+        }
+    } catch (error) {
+        console.error("Erro ao salvar/verificar token:", error);
+    }
+}
+
+// teste funcços
+// Mostrar/ocultar senha
+document.querySelector('.toggle-password').onclick = function () {
+    const input = this.previousElementSibling;
+    if (input.type === "password") {
+        input.type = "text";
+        this.querySelector('img').src = "icons/visibility_off.svg"; // Ícone de ocultar senha
+    } else {
+        input.type = "password";
+        this.querySelector('img').src = "icons/visibility.svg"; // Ícone de mostrar senha
+    }
+}
+
+// Lembrar login
+window.addEventListener('load', () => {
+    const savedEmail = localStorage.getItem('savedLoginEmail');
+    if (savedEmail) {
+        document.getElementById('loginEmail').value = savedEmail;
+        document.getElementById('rememberLogin').checked = true;
+    }
+});
+

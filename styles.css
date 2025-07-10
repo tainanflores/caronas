@@ -4,7 +4,6 @@
     margin: 0;
     padding: 0;
     /* font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif; */
-    font-family: 'Courier New', Courier, monospace;
 }
 
 /* Corpo da página */
@@ -24,6 +23,7 @@ body {
     border-radius: 20px;
     box-shadow: 0 4px 12px rgb(0 0 0 / 0.1);
     /* padding: 0 1rem 2rem; */
+    font-family: 'Courier New', Courier, monospace;
 }
 
 /* Header */
@@ -130,9 +130,9 @@ main {
 #authSection {
     flex: 1 1 auto;
     height: 100%;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
+    /* display: flex; */
+    /* flex-direction: column; */
+    /* justify-content: space-around; */
 }
 
 
@@ -185,6 +185,7 @@ main {
 
 /* Seções de autenticação e app */
 .authForm {
+    margin-top: 3rem;
     width: 100%;
     /* max-width: 480px; */
     padding: 0rem 1.5rem;
@@ -254,13 +255,46 @@ button {
     transition: background-color 0.25s ease;
     user-select: none;
     display: inline-block;
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */
 }
 
 button:disabled {
     background-color: #94a3b8;
     cursor: not-allowed;
 }
+
+.mainBtn {
+    margin-bottom: 10px;
+}
+
+/* ********************** */
+.toggle-password {
+    position: absolute;
+    translate: -120% -30%;
+    /* top: 50%; */
+    height: 5px;
+    cursor: pointer;
+    opacity: 0.6;
+}
+
+.toggle-password img {
+    width: 30px;
+    height: 30px;
+    opacity: 0.6;
+}
+
+.toggle-password img:hover {
+    opacity: 1;
+}
+
+.remember-me {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+/* 888888888888888888888 */
+
 
 button#loginBtn,
 button#registerBtn,
@@ -287,7 +321,11 @@ button#showLoginFromRecoverBtn:hover {
 
 /* Botão sair do app */
 #logoutBtn {
-    margin-top: 1rem;
+    position: absolute;
+    bottom: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
     background-color: #d23f3f;
     color: white;
 }
@@ -320,6 +358,7 @@ button#showLoginFromRecoverBtn:hover {
 
 /* Seção principal após login */
 #appSection {
+    margin-top: 2vh;
     background: white;
     padding: 1.5rem 1.5rem 2rem;
     border-radius: 12px;
@@ -333,6 +372,8 @@ button#showLoginFromRecoverBtn:hover {
 
 #userInfo {
     font-weight: 600;
+    font-size: 0.8rem;
+    font-family: cursive;
     margin-bottom: 1rem;
     text-align: center;
     color: #334155;
@@ -349,6 +390,21 @@ button#showLoginFromRecoverBtn:hover {
 
 #queueActions button {
     flex: 1 1 140px;
+}
+
+#skipRideBtn {
+    background-color: #e00f0f;
+    color: rgb(250, 242, 242);
+    margin-top: 0.3rem;
+}
+
+#skipRideBtn:hover {
+    background-color: #791111;
+    color: #fdf8f8;
+}
+
+#skipRideBtn.hidden {
+    display: none;
 }
 
 /* Lista da fila */

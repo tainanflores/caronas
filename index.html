@@ -38,13 +38,22 @@
                     <label for="email">Email:</label>
                     <input type="email" id="loginEmail" placeholder="email@email.com" autocomplete="username" />
                 </div>
-                <div class="input-box">
+                <div class="input-box password-container">
                     <label for="password">Senha:</label>
-                    <input type="password" id="loginPassword" placeholder="*********" autocomplete="current-password" />
+                    <input type="password" id="loginPassword" placeholder="Senha (mínimo 6 caracteres)"
+                        autocomplete="current-password" />
+                    <span class="toggle-password" onclick="togglePasswordVisibility(this)">
+                        <img src="icons/visibility.svg" alt="Mostrar senha" />
+                    </span>
                 </div>
+                <!-- CHECKBOX LEMBRAR LOGIN -->
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberLogin">
+                    <label for="rememberLogin"></label>&nbspLembrar login
+                </label>
 
-                <button id="loginBtn">Entrar</button>
-                <button id="showRegisterBtn">Cadastrar-se</button>
+                <button id="loginBtn" class="mainBtn">Entrar</button>
+                <button id="showRegisterBtn" class="mainBtn">Cadastrar-se</button>
                 <p>
                     <button id="showRecoverBtn" class="linkBtn">Esqueci minha senha</button>
                 </p>
@@ -66,8 +75,8 @@
                     <input type="password" id="registerPassword" placeholder="Senha (mínimo 6 caracteres)"
                         autocomplete="new-password" />
                 </div>
-                <button id="registerBtn">Cadastrar</button>
-                <button id="showLoginBtn">Voltar</button>
+                <button id="registerBtn" class="mainBtn">Cadastrar</button>
+                <button id="showLoginBtn" class="mainBtn">Voltar</button>
             </div>
 
             <!-- Recuperar Senha -->
@@ -77,25 +86,27 @@
                     <label for="recoverEmail">Email:</label>
                     <input type="email" id="recoverEmail" placeholder="email@email.com" autocomplete="email" />
                 </div>
-                <button id="recoverBtn">Enviar link de recuperação</button>
-                <button id="showLoginFromRecoverBtn">Voltar para login</button>
+                <button id="recoverBtn" class="mainBtn">Enviar link de recuperação</button>
+                <button id="showLoginFromRecoverBtn" class="mainBtn">Voltar para login</button>
             </div>
 
             <!-- Seção app principal após login -->
             <section id="appSection" class="hidden">
-                <p id="userInfo"></p>
+                <p id="userInfo"><em>"Quem mostra favor ao pobre empresta a Jeová,<br>
+                        E Ele o recompensará por isso." — Pr 19:17 </em></p>
 
                 <div id="queueActions">
                     <button id="enterQueueBtn">Entrar na fila</button>
-                    <button id="confirmRideBtn" class="hidden">Carona Finalizada</button>
+                    <button id="confirmRideBtn" class="hidden">Confirmar Carona</button>
+                    <button id="skipRideBtn" class="hidden">Cancelar Carona</button>
                 </div>
 
                 <section id="queueListSection">
-                    <h3>Fila de Caroneiros</h3>
+                    <h3>Fila da Carona</h3>
                     <ol id="queueList"></ol>
                 </section>
 
-                <button id="logoutBtn" style="display: none;">Sair do app</button>
+                <button id="logoutBtn">Sair do app</button>
             </section>
             <!-- Mensagens gerais de feedback -->
             <div id="message" role="alert"></div>
