@@ -14,6 +14,7 @@ firebase.initializeApp({
 });
 
 const messaging = firebase.messaging();
+const BASE_URL = self.location.origin;
 
 messaging.onBackgroundMessage(payload => {
     const notificationTitle = payload.data.title;
@@ -37,7 +38,8 @@ self.addEventListener('notificationclick', function (event) {
 
     event.waitUntil(
         clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async function (clientList) {
-            let client = clientList.find(c => c.url.includes('http://127.0.0.1:5500/') && 'focus' in c);
+            let client = clientList.find(c => c.url.includes(BASE_URL) && 'focus' in c);
+
 
             const msg = { action: 'save-notification', ...data };
 
@@ -45,7 +47,8 @@ self.addEventListener('notificationclick', function (event) {
                 client.focus();
                 client.postMessage(msg);
             } else {
-                const newClient = await clients.openWindow('http://127.0.0.1:5500/');
+                const newClient = await clients.openWindow(BASE_URL);
+
                 setTimeout(() => {
                     newClient?.postMessage(msg);
                 }, 1000);
