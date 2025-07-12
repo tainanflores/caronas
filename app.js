@@ -96,6 +96,8 @@ const menuBtn = document.getElementById("menuBtn");
 const menuDropdown = document.getElementById("menuDropdown");
 const leaveQueueMenuBtn = document.getElementById("leaveQueueMenuBtn");
 
+const closeNotificationModal = document.getElementById("closeNotificationModal");
+
 // --- VARIÁVEL DE CONTROLE ---
 let currentUser = null;
 
@@ -273,6 +275,13 @@ loginBtn.onclick = async () => {
     }
 };
 
+//aoapertar enter faz login
+loginForm.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+        e.preventDefault(); // Evita o comportamento padrão do Enter
+        loginBtn.click(); // Simula o clique no botão de login
+    }
+});
 // --- LOGOUT ---
 
 logoutBtn.onclick = async () => {
@@ -280,7 +289,8 @@ logoutBtn.onclick = async () => {
         await signOut(auth);
         currentUser = null;
         clearInputs();
-        showSection(loginForm);
+        updateUI();
+        // showSection(loginForm);
         showMessage("Você saiu do app.", false);
     } catch (error) {
         showMessage("Erro ao sair: " + error.message);
@@ -336,6 +346,8 @@ leaveQueueMenuBtn.onclick = async () => {
     try {
         await deleteDoc(doc(db, "queue", currentUser.uid));
         await updateDoc(doc(db, "users", currentUser.uid), { inQueue: false });
+        currentUser.inQueue = false; // Atualiza a variável local
+
         showMessage("Você saiu da fila.", false);
         await updateUI();
     } catch (error) {
@@ -354,14 +366,33 @@ enterQueueBtn.onclick = async () => {
         const snapshot = await getDocs(q);
         const menorQueueSpot = snapshot.empty ? 0 : snapshot.docs[0].data().queueSpot - 1;
 
-        await setDoc(doc(db, "queue", currentUser.uid), { queueSpot: menorQueueSpot });
+        await setDoc(doc(db, "queue", currentUser.uid), { queueSpot: menorQueueSpot, skipped: false, lastSkip: null, name: currentUser.displayName || "Sem nome" });
         await updateDoc(doc(db, "users", currentUser.uid), { inQueue: true });
+        currentUser.inQueue = true; // Atualiza a variável local
         showMessage("Você entrou na fila.", false);
         await updateUI();
     } catch (error) {
         showMessage("Erro ao entrar na fila: " + error.message);
     }
 };
+
+// --- PASSAR A VEZ PARA O PRÓXIMO
+skipRideBtn.onclick = async () => {
+    if (!currentUser) return;
+
+    const confirmed = confirm("Tem certeza que deseja passar a sua vez?");
+    if (!confirmed) return;
+
+    try {
+        const timestamp = Date.now();
+        await updateDoc(doc(db, "queue", currentUser.uid), { skipped: true, lastSkip: timestamp });
+        showMessage(" Confirmado. Você passou a vez e será o responsável na próxima reunião.", false);
+        await updateUI();
+    } catch (error) {
+        showMessage("Erro ao confirmar carona: " + error.message);
+    }
+
+}
 
 
 // --- CONFIRMAR CARONA ---
@@ -373,9 +404,10 @@ confirmRideBtn.onclick = async () => {
         const q = query(filaRef, orderBy("queueSpot", "desc"), limit(1));
         const snapshot = await getDocs(q);
         const maiorQueueSpot = snapshot.empty ? 0 : snapshot.docs[0].data().queueSpot + 1;
+        const timestamp = Date.now();
 
-        await updateDoc(doc(db, "queue", currentUser.uid), { queueSpot: maiorQueueSpot });
-        showMessage("Carona confirmada. Você foi para o final da fila.", false);
+        await updateDoc(doc(db, "queue", currentUser.uid), { queueSpot: maiorQueueSpot, timestamp });
+        showMessage("Confirmado. Você foi para o final da fila.", false);
         await updateUI();
     } catch (error) {
         showMessage("Erro ao confirmar carona: " + error.message);
@@ -393,70 +425,21 @@ async function updateUI() {
 
     topMenu.classList.remove("hidden");
 
-    // Atualiza dados do usuário
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    const userData = userDoc.exists() ? userDoc.data() : null;
+    enterQueueBtn.style.display = currentUser.inQueue ? "none" : "inline-block";
+    confirmRideBtn.style.display = currentUser.isFirstInQueue ? "inline-block" : "none"; // inicialmente escondido
+    currentUser.isFirstInQueue ? skipRideBtn.classList.remove("hidden") : skipRideBtn.classList.add("hidden"); // inicialmente escondido
 
-    if (!userData) {
-        showMessage("Dados do usuário não encontrados.");
-        return;
-    }
-
-    // userInfo.textContent = `Olá, ${userData.name}`;
-
-    // Verifica se está na fila
-    const inQueue = userData.inQueue === true;
-
-    enterQueueBtn.style.display = inQueue ? "none" : "inline-block";
-    confirmRideBtn.style.display = "none"; // inicialmente escondido
-
-    // Busca fila ordenada por timestamp
-    const q = query(collection(db, "queue"), orderBy("queueSpot", "asc"));
-    const snapshot = await getDocs(q);
-
-    // Se estiver na fila e for o primeiro, mostra botão confirmar
-    const firstInQueue = snapshot.docs[0]?.id;
-    if (inQueue && firstInQueue === currentUser.uid) {
-        confirmRideBtn.style.display = "inline-block";
-        skipRideBtn.classList.remove("hidden");
-    }
 }
-
-function startListeningQueue() {
-    const filaRef = collection(db, "queue");
-    const q = query(filaRef, orderBy("queueSpot", "asc"));
-
-    onSnapshot(q, async (snapshot) => {
-        queueList.innerHTML = "";
-
-        // Usar for..of para poder usar await dentro do loop
-        for (const docSnap of snapshot.docs) {
-            const userId = docSnap.id;
-            const userDataSnap = await getDoc(doc(db, "users", userId));
-            const userData = userDataSnap.exists() ? userDataSnap.data() : { name: "Usuário" };
-
-            const isCurrentUser = userId === currentUser?.uid;
-            const listNumber = queueList.children.length + 1;
-
-            const li = document.createElement("li");
-            li.textContent = `${listNumber} - ${userData.name} ${isCurrentUser ? "(Você)" : ""}`;
-            if (isCurrentUser) {
-                li.style.backgroundColor = "#00F505"; // destaque verde limão
-            }
-            queueList.appendChild(li);
-        }
-        updateUI();
-    });
-}
-
-// --- MONITORA AUTENTICAÇÃO ---                     vapidKey: 'BNqChjRQpFe_6xZcJs6IBtdkSj9Rjask1KK_-EVli-vxjsxfSvlj9A44vE6i7wuoWhcp80Zi4pISyTjQ-RZ2no0'
-
 
 onAuthStateChanged(auth, async (user) => {
     currentUser = user;
-
+    let userDoc = null;
     if (user) {
         try {
+            // Verifica se o usuário já está na fila
+            userDoc = await getDoc(doc(db, "users", user.uid));
+            currentUser.inQueue = userDoc.data().inQueue;
+
             const permission = await Notification.requestPermission();
 
             if (permission === 'granted') {
@@ -489,6 +472,71 @@ onAuthStateChanged(auth, async (user) => {
     }
 });
 
+function startListeningQueue() {
+    const filaRef = collection(db, "queue");
+    const q = query(filaRef, orderBy("queueSpot", "asc"));
+
+    onSnapshot(q, async (snapshot) => {
+
+        queueList.innerHTML = "";
+
+        const active = [];
+        const skipped = [];
+
+        for (const docSnap of snapshot.docs) {
+            const data = docSnap.data();
+            if (data.skipped) {
+                skipped.push(docSnap);
+            } else {
+                active.push(docSnap);
+            }
+        }
+
+        // Ordenar os com skip === true por lastSkip (asc)
+        skipped.sort((a, b) => {
+            const dataA = a.data();
+            const dataB = b.data();
+
+            // Pode ser timestamp Firestore, ou um número, ou Date.
+            // Ajuste para o formato correto.
+
+            // Supondo que lastSkip é um timestamp Firestore
+            const dateA = dataA.lastSkip
+            const dateB = dataB.lastSkip
+            return dateA - dateB;
+        });
+
+        // Juntar os dois grupos
+        const finalQueue = [...active, ...skipped];
+
+        // Usar for..of para poder usar await dentro do loop
+        for (const docSnap of finalQueue) {
+            const userId = docSnap.id;
+            const userName = docSnap.data().name
+
+
+            const isCurrentUser = userId === currentUser?.uid;
+            const listNumber = queueList.children.length + 1;
+
+            const li = document.createElement("li");
+            li.textContent = `${listNumber} - ${userName} ${isCurrentUser ? "(Você)" : ""}`;
+            if (isCurrentUser) {
+                li.style.backgroundColor = "#00F505"; // destaque verde limão
+            }
+            queueList.appendChild(li);
+        }
+
+        // Se estiver na fila e for o primeiro, mostra botão confirmar
+        currentUser.isFirstInQueue = finalQueue[0]?.id === currentUser?.uid;
+        updateUI();
+    });
+}
+
+// --- MONITORA AUTENTICAÇÃO ---                    
+
+
+
+
 // --- FUNÇÕES DE TOKEN ---
 
 async function saveTokenForUser(uid, currentToken) {
@@ -520,8 +568,8 @@ async function saveTokenForUser(uid, currentToken) {
     }
 }
 
-// teste funcços
-// Mostrar/ocultar senha
+
+/// FUNÇÕES NO DOM///////////////////////////////////
 document.querySelector('.toggle-password').onclick = function () {
     const input = this.previousElementSibling;
     if (input.type === "password") {
@@ -542,3 +590,39 @@ window.addEventListener('load', () => {
     }
 });
 
+if ('serviceWorker' in navigator) {
+    console.log('Service Worker is supported');
+    navigator.serviceWorker.addEventListener('message', function (event) {
+        const { action, title, body } = event.data || {};
+        if (action === 'save-notification') {
+            // Salva para mostrar depois, se necessário
+            localStorage.setItem('ultimaNotificacao', JSON.stringify({ title, body }));
+
+            // E mostra o modal imediatamente (se a página já estiver carregada)
+            showNotificationModal(title, body);
+        }
+    });
+}
+
+// Quando a página carregar, mostra a última notificação (se tiver)
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM completamente carregado e analisado');
+    const ultima = localStorage.getItem('ultimaNotificacao');
+    console.log('Última notificação:', ultima);
+    if (ultima) {
+        const { title, body } = JSON.parse(ultima);
+        showNotificationModal(title, body);
+        localStorage.removeItem('ultimaNotificacao');
+    }
+});
+
+function showNotificationModal(title, body) {
+    document.getElementById('modal-title').innerText = title;
+    document.getElementById('modal-body').innerText = body;
+    document.getElementById('notification-modal').style.display = 'block';
+}
+
+closeNotificationModal.onclick = () => {
+    document.getElementById('notification-modal').style.display = 'none';
+    localStorage.removeItem('ultimaNotificacao'); // Limpa a notificação após fechar
+}

@@ -19,8 +19,39 @@ messaging.onBackgroundMessage(payload => {
     const notificationTitle = payload.data.title;
     const notificationOptions = {
         body: payload.data.body,
-        icon: '/icons/icon-192.png', // Seu ícone
+        icon: '/icons/icon-192.png',
+        data: {
+            title: payload.data.title,
+            body: payload.data.body
+        }
     };
 
     self.registration.showNotification(notificationTitle, notificationOptions);
+
 });
+
+self.addEventListener('notificationclick', function (event) {
+    event.notification.close();
+
+    const data = event.notification.data || {};
+
+    event.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async function (clientList) {
+            let client = clientList.find(c => c.url.includes('http://127.0.0.1:5500/') && 'focus' in c);
+
+            const msg = { action: 'save-notification', ...data };
+
+            if (client) {
+                client.focus();
+                client.postMessage(msg);
+            } else {
+                const newClient = await clients.openWindow('http://127.0.0.1:5500/');
+                setTimeout(() => {
+                    newClient?.postMessage(msg);
+                }, 1000);
+            }
+        })
+    );
+});
+
+

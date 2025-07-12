@@ -40,6 +40,52 @@ header {
     /* padding: 1rem; */
 }
 
+#notification-modal {
+    display: none;
+    position: fixed;
+    top: 20px;
+    left: 50%;
+
+    transform: translateX(-50%);
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+    z-index: 1000;
+    width: 90%;
+    text-align: center;
+}
+
+#notification-modal h1 {
+    white-space: nowrap;
+    overflow: visible;
+    /* width: fit-content; */
+    font-size: min(max(1rem, 6vw), 2.2rem);
+    text-overflow: unset;
+    /* Remove ellipsis, keep text in one line and shrink font if needed */
+    font-weight: 900;
+    letter-spacing: 0cap;
+    padding: 0;
+    margin: 2px;
+}
+
+#notification-modal p {
+    margin: 0.7rem 0;
+    font-size: 1.2rem;
+    color: #555;
+    font-weight: ;
+}
+
+#notification-modal button {
+
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: 60%;
+}
+
 #banner {
     width: 100%;
     height: auto;
@@ -76,6 +122,7 @@ header {
 }
 
 #menuDropdown {
+    height: 70px;
     position: absolute;
     top: 32px;
     right: 0;
@@ -85,6 +132,7 @@ header {
     box-shadow: 0 4px 12px rgb(0 0 0 / 0.15);
     min-width: 140px;
     z-index: 10;
+    padding: 3px 0;
 }
 
 #menuDropdown.hidden {
@@ -93,15 +141,30 @@ header {
 
 #menuDropdown button {
     width: 100%;
-    padding: 10px 16px;
+    padding: 5px 16px;
     background: none;
     border: none;
+    border-bottom: 1px solid #e2e8f0;
     text-align: left;
     font-weight: 600;
     color: #d23f3f;
     cursor: pointer;
-    border-radius: 6px;
+    border-radius: 0px;
     transition: background-color 0.2s ease;
+}
+
+/* Botão sair do app */
+#logoutBtn {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    background-color: #d23f3f;
+    color: white;
+}
+
+#logoutBtn:hover {
+    background-color: #991b1b;
 }
 
 #menuDropdown button:hover,
@@ -246,7 +309,7 @@ input[type="text"]:focus {
 /* Botões principais */
 button {
     width: 100%;
-    padding: 14px;
+    padding: 8px;
     font-size: 1.1rem;
     font-weight: 700;
     border: none;
@@ -319,20 +382,7 @@ button#showLoginFromRecoverBtn:hover {
     color: #1e293b;
 }
 
-/* Botão sair do app */
-#logoutBtn {
-    position: absolute;
-    bottom: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 150px;
-    background-color: #d23f3f;
-    color: white;
-}
 
-#logoutBtn:hover {
-    background-color: #991b1b;
-}
 
 /* Botão sair da fila no menu - já estilizado no menu */
 
@@ -371,8 +421,8 @@ button#showLoginFromRecoverBtn:hover {
 }
 
 #userInfo {
-    font-weight: 600;
-    font-size: 0.8rem;
+    /* font-weight: 600; */
+    font-size: 1rem;
     font-family: cursive;
     margin-bottom: 1rem;
     text-align: center;

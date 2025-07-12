@@ -14,12 +14,21 @@
 
 
 <body>
+    <!-- MODAL NOTIFICAÇÃO -->
+    <div id="notification-modal">
+        <h1 id="modal-title" class="titulo-app"></h1>
+        <p id="modal-body"></p>
+        <button id="closeNotificationModal">Fechar</button>
+    </div>
+    <!-- MODAL NOTIFICAÇÃO -->
 
     <header>
         <div id="topMenu" class="hidden">
             <button id="menuBtn" title="Menu">&#x22EE;</button> <!-- 3 pontos verticais -->
             <div id="menuDropdown" class="hidden">
                 <button id="leaveQueueMenuBtn">Sair da fila</button>
+                <hr>
+                <button id="logoutBtn">Desconectar</button>
             </div>
         </div>
         <!-- <h1 id="tituloApp">Os Caroneiros</h1> -->
@@ -98,22 +107,20 @@
                 <div id="queueActions">
                     <button id="enterQueueBtn">Entrar na fila</button>
                     <button id="confirmRideBtn" class="hidden">Confirmar Carona</button>
-                    <button id="skipRideBtn" class="hidden">Cancelar Carona</button>
+                    <button id="skipRideBtn" class="hidden">Passar a Vez</button>
                 </div>
 
                 <section id="queueListSection">
                     <h3>Fila da Carona</h3>
                     <ol id="queueList"></ol>
                 </section>
-
-                <button id="logoutBtn">Sair do app</button>
             </section>
             <!-- Mensagens gerais de feedback -->
             <div id="message" role="alert"></div>
         </section>
 
     </main>
-
 </body>
+
 
 </html>
