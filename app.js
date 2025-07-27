@@ -185,6 +185,8 @@ registerBtn.onclick = async () => {
     const name = sanitizeName(registerName.value);
     const email = registerEmail.value.trim();
     const password = registerPassword.value;
+    registerBtn.value = "Cadastrando..."; // Muda o texto do botão
+    registerBtn.disabled = true; // Desabilita o botão para evitar múltiplos cliques
 
     if (!name) {
         showMessage("Por favor, insira seu nome completo.");
@@ -217,7 +219,10 @@ registerBtn.onclick = async () => {
         showMessage("Cadastro realizado com sucesso!", false);
         clearInputs();
         showSection(appSection);
+
     } catch (error) {
+        registerBtn.disabled = false;
+        registerBtn.value = "Cadastrar"; // Restaura o texto do botão
         if (error.code === "auth/email-already-in-use") {
             showMessage("Esse email já está cadastrado. Por favor, faça login.");
         } else if (error.code === "auth/invalid-email") {
@@ -227,7 +232,11 @@ registerBtn.onclick = async () => {
         } else {
             showMessage("Erro ao cadastrar: " + error.message);
         }
+    } finally {
+        registerBtn.disabled = false;
+        registerBtn.value = "Cadastrar";
     }
+
 };
 
 // --- LOGIN ---
@@ -246,6 +255,9 @@ loginBtn.onclick = async () => {
         return;
     }
 
+    loginBtn.textContent = "Entrando...";
+    loginBtn.disabled = true;
+
     try {
         const userCred = await signInWithEmailAndPassword(auth, email, password);
         currentUser = userCred.user;
@@ -258,6 +270,8 @@ loginBtn.onclick = async () => {
             localStorage.removeItem('savedLoginEmail');
         }
         showMessage("Login realizado com sucesso!", false);
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Entrar";
     } catch (error) {
         if (error.code === "auth/wrong-password") {
             showMessage("Senha incorreta.");
@@ -272,6 +286,8 @@ loginBtn.onclick = async () => {
         } else {
             showMessage("Erro ao logar: " + error.message);
         }
+        loginBtn.disabled = false;
+        loginBtn.textContent = "Entrar";
     }
 };
 
@@ -360,6 +376,9 @@ leaveQueueMenuBtn.onclick = async () => {
 enterQueueBtn.onclick = async () => {
     if (!currentUser) return;
 
+    enterQueueBtn.textContent = "Entrando...";
+    enterQueueBtn.disabled = true;
+
     try {
         const filaRef = collection(db, "queue");
         const q = query(filaRef, orderBy("queueSpot", "asc"), limit(1));
@@ -373,6 +392,9 @@ enterQueueBtn.onclick = async () => {
         await updateUI();
     } catch (error) {
         showMessage("Erro ao entrar na fila: " + error.message);
+    } finally {
+        enterQueueBtn.textContent = "Entrar na fila";
+        enterQueueBtn.disabled = false;
     }
 };
 
@@ -397,7 +419,13 @@ skipRideBtn.onclick = async () => {
 
 // --- CONFIRMAR CARONA ---
 confirmRideBtn.onclick = async () => {
-    if (!currentUser) return;
+    if (!currentUser || !currentUser.isFirstInQueue) {
+        showMessage("Você não é o primeiro da fila.");
+        return;
+    }
+
+    confirmRideBtn.textContent = "Confirmando...";
+    confirmRideBtn.disabled = true;
 
     try {
         const filaRef = collection(db, "queue");
@@ -406,11 +434,18 @@ confirmRideBtn.onclick = async () => {
         const maiorQueueSpot = snapshot.empty ? 0 : snapshot.docs[0].data().queueSpot + 1;
         const timestamp = Date.now();
 
-        await updateDoc(doc(db, "queue", currentUser.uid), { queueSpot: maiorQueueSpot, timestamp });
+        await updateDoc(doc(db, "queue", currentUser.uid), {
+            queueSpot: maiorQueueSpot,
+            timestamp
+        });
+
         showMessage("Confirmado. Você foi para o final da fila.", false);
         await updateUI();
     } catch (error) {
         showMessage("Erro ao confirmar carona: " + error.message);
+    } finally {
+        confirmRideBtn.disabled = false;
+        confirmRideBtn.textContent = "Confirmar carona";
     }
 };
 
@@ -438,7 +473,15 @@ onAuthStateChanged(auth, async (user) => {
         try {
             // Verifica se o usuário já está na fila
             userDoc = await getDoc(doc(db, "users", user.uid));
-            currentUser.inQueue = userDoc.data().inQueue;
+            if (userDoc.exists()) {
+                const data = userDoc.data();
+                currentUser.inQueue = data.inQueue;
+                currentUser.role = data.role || "user";
+            } else {
+                console.warn("Usuário autenticado, mas não encontrado no Firestore.");
+                await signOut(auth); // ou redirect para login
+                return;
+            }
 
             const permission = await Notification.requestPermission();
 
@@ -473,6 +516,7 @@ onAuthStateChanged(auth, async (user) => {
 });
 
 function startListeningQueue() {
+    queueLoading.style.display = "block";
     const filaRef = collection(db, "queue");
     const q = query(filaRef, orderBy("queueSpot", "asc"));
 
@@ -525,6 +569,8 @@ function startListeningQueue() {
             }
             queueList.appendChild(li);
         }
+
+        queueLoading.style.display = "none";
 
         // Se estiver na fila e for o primeiro, mostra botão confirmar
         currentUser.isFirstInQueue = finalQueue[0]?.id === currentUser?.uid;
